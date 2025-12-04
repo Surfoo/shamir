@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1.3-labs
-ARG PHP_VERSION=8.1
+ARG PHP_VERSION=8.2
 
 FROM php:${PHP_VERSION}-cli
 
 # make PHP extension installation easier
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
-MAINTAINER Oliver G. Mueller <oliver@teqneers.de>
+LABEL maintainer="Oliver G. Mueller <oliver@teqneers.de>"
 
 SHELL ["/bin/bash", "-c"]
 RUN <<EOC

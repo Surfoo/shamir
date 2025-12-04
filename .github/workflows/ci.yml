@@ -20,25 +20,27 @@ jobs:
       max-parallel: 2
       fail-fast: false
       matrix:
-        php-version: [
-            "8.1",
-            "8.2",
-            "8.3",
-            "8.4",
-            # also try a future version
-            "8.5"
-        ]
-        composer-param: [
-            "update --no-progress --prefer-dist --prefer-lowest",
-            "update --no-progress --prefer-dist"
-        ]
-    name: PHP ${{ matrix.php-version }} test
+        include:
+          # Symfony 7 supports PHP >= 8.2
+          - php-version: "8.2"
+            symfony-version: "7.3.*"
+            prefer-lowest: true
+          - php-version: "8.2"
+            symfony-version: "7.4.*"
+            prefer-lowest: true
+          - php-version: "8.3"
+            symfony-version: "7.3.*"
+            prefer-lowest: true
+          - php-version: "8.3"
+            symfony-version: "7.4.*"
+            prefer-lowest: true
+          - php-version: "8.4"
+            symfony-version: "8.0.*"
+            prefer-lowest: false
+    name: PHP ${{ matrix.php-version }} / Symfony ${{ matrix.symfony-version }}
     steps:
       - name: checkout project
         uses: actions/checkout@v6
-        with:
-          # needed by scrutinizer
-          fetch-depth: 2
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -64,10 +66,27 @@ jobs:
             restore-keys: ${{ runner.os }}-composer-
 
       - name: Install dependencies
-        run: composer ${{ matrix.composer-param }}
+        env:
+          SYMFONY_VERSION: ${{ matrix.symfony-version }}
+          PREFER_LOWEST: ${{ matrix.prefer-lowest }}
+        run: |
+          FLAGS="--no-progress --prefer-dist --with symfony/console:${SYMFONY_VERSION}"
+          if [ "${PREFER_LOWEST}" = "true" ]; then
+            FLAGS="${FLAGS} --prefer-lowest"
+          fi
+          composer update ${FLAGS}
 
-      # Run phpunit with code coverage
+      # Run phpunit with PCOV coverage export
       - name: PHPUnit Tests
-        run: vendor/bin/phpunit --coverage-clover=coverage.clover
+        run: vendor/bin/phpunit --coverage-php=coverage.pcov
+
+      - name: Show coverage percentage
+        run: |
+          php -r "
+            require 'vendor/autoload.php';
+            \$coverage = include 'coverage.pcov';
+            \$pct = \$coverage->getReport()->percentageOfExecutedLines()->asFloat();
+            printf('Line coverage: %.2f%%%s', \$pct, PHP_EOL);
+          "
 
 # vim: syntax=yaml ts=2 sw=2 et sr softtabstop=2 autoindent

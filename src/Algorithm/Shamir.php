@@ -113,11 +113,12 @@ class Shamir implements Algorithm, RandomGeneratorAware
      * to set a smaller size than required by shares.
      *
      * @see
-     * @param  int  $chunkSize  Size in number of bytes
+     * @param  int|float  $chunkSize  Size in number of bytes
      * @throws OutOfRangeException
      */
-    public function setChunkSize(int $chunkSize): Shamir
+    public function setChunkSize(int|float $chunkSize): Shamir
     {
+        $chunkSize = (int)$chunkSize;
         $primeNumber = [1 => 257, 65537, 16777259, 4294967311, 1099511627791, 281474976710677, 72057594037928017];
 
         if (!isset($primeNumber[$chunkSize])) {

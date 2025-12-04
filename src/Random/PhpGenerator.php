@@ -28,11 +28,14 @@ class PhpGenerator implements Generator
     protected $min = 1;
 
     /**
-     * @param  int  $max  The maximum random number
-     * @param  int  $min  The minimum random number (must be positive)
+     * @param  int|float  $max  The maximum random number
+     * @param  int|float  $min  The minimum random number (must be positive)
      */
-    public function __construct(int $max = PHP_INT_MAX, int $min = 1)
+    public function __construct(int|float $max = PHP_INT_MAX, int|float $min = 1)
     {
+        $min = (int)$min;
+        $max = (int)$max;
+
         if ($min < 1) {
             throw new OutOfRangeException('The min number must be a positive integer.');
         }
